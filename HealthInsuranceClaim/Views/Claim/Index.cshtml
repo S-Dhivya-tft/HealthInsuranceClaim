@@ -1,0 +1,107 @@
+﻿@{
+    ViewData["Title"] = "Claims";
+}
+
+<!-- Logout Button (Below Home Section in the header) -->
+<div class="container text-right mb-3">
+    <form method="post" asp-action="Logout" class="form-inline">
+        <button type="submit" class="btn btn-primary btn-lg">Logout</button>
+    </form>
+</div>
+
+<!-- Patient Claim Details -->
+<div class="container mt-4">
+    <h2 class="text-center">Patient Claim Details</h2>
+
+    <!-- Search Bar -->
+    <div class="input-group mb-3">
+        <input type="text" id="policySearch" class="form-control" placeholder="Enter Policy, Aadhar Number, or PAN Number" oninput="searchPolicy()" />
+        <button class="btn btn-primary" onclick="searchPolicy()">Search</button>
+    </div>
+
+    <!-- Patient Table -->
+    <table class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>Policy Number</th>
+                <th>Patient Name</th>
+                <th>Aadhar Number</th>
+                <th>PAN Number</th>
+                <th>Policy Type</th>
+                <th>Claim Policy PDF</th>
+            </tr>
+        </thead>
+        <tbody id="patientTable">
+            @foreach (var patient in Model)
+            {
+                <tr>
+                    <td>@patient.PolicyNumber</td>
+                    <td>@patient.Name</td>
+                    <td>@patient.AadharNumber</td>
+                    <td>@patient.PanNumber</td>
+                    <td>@patient.PolicyType</td>
+                    <td>
+                        <a href="@Url.Action("DownloadPdf", "Claim", new { policyType = patient.PolicyType })"
+                           class="btn btn-primary">
+                            Download
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Popup Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger" id="errorModalLabel">Error</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modalMessage">
+                <!-- Error message will be inserted here -->
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function searchPolicy() {
+        var searchQuery = document.getElementById("policySearch").value.trim();
+
+        fetch('/Claim/Search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'searchQuery=' + encodeURIComponent(searchQuery)
+        })
+            .then(response => response.json())
+            .then(data => {
+                var tableBody = document.getElementById("patientTable");
+                tableBody.innerHTML = "";
+
+                if (data.success) {
+                    data.patients.forEach(patient => {
+                        var downloadUrl = `/Claim/DownloadPdf?policyType=${encodeURIComponent(patient.policyType)}`;
+
+                        tableBody.innerHTML += `
+                            <tr>
+                                <td>${patient.policyNumber}</td>
+                                <td>${patient.name}</td>
+                                <td>${patient.aadharNumber}</td>
+                                <td>${patient.panNumber}</td>
+                                <td>${patient.policyType}</td>
+                                <td>
+                                    <a href="${downloadUrl}" class="btn btn-primary">Download</a>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    document.getElementById("modalMessage").innerText = data.message;
+                    new bootstrap.Modal(document.getElementById('errorModal')).show();
+                }
+            });
+    }
+</script>
+
