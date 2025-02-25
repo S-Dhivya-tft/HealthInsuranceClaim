@@ -8,7 +8,7 @@ namespace HealthInsuranceClaim.Controllers
     public class ClaimController : Controller
     {
 
-        private readonly string pdfDirectory = @"C:\Users\Dhivya S\AppData\Local\Temp\Task";
+        private readonly string pdfDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/PlanPDFs");
         private readonly string basicPlanFile = "BasicPlan.pdf";
         private readonly string premiumPlanFile = "PremiumPlan.pdf";
         // Sample patient data
